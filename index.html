@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrbanFix - Report Urban Issues</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn.primary { background-color: var(--primary-color); color: white; }
+        .btn.secondary { background-color: var(--secondary-color); color: white; }
+        .btn.danger { background-color: var(--danger-color); color: white; }
+        .btn.warning { background-color: var(--warning-color); color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo a {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--dark-color);
+            text-decoration: none;
+        }
+        .logo a span {
+            color: var(--primary-color);
+        }
+        nav ul {
+            display: flex;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        nav ul li { margin-left: 20px; }
+        nav ul li a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        nav ul li a:hover,
+        nav ul li a.active { color: var(--primary-color); font-weight: bold; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-name { font-weight: 500; color: var(--primary-color); }
+        
+        /* Hero Section with Background Image */
+        .hero {
+            background: linear-gradient(135deg, rgba(44, 62, 80, 0.85), rgba(52, 152, 219, 0.75)), 
+                        url('https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=1350');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);
+        }
+        .hero .container {
+            position: relative;
+            z-index: 1;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeInUp 1s ease;
+        }
+        .hero h1 i {
+            color: var(--secondary-color);
+        }
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            animation: fadeInUp 1.2s ease;
+        }
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            animation: fadeInUp 1.4s ease;
+        }
+        .hero-buttons .btn {
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .hero-buttons .btn.primary {
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
+        }
+        .hero-buttons .btn.secondary {
+            background: linear-gradient(135deg, var(--secondary-color), #27ae60);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .how-it-works { text-align: center; margin-bottom: 50px; }
+        .how-it-works h2 {
+            margin-bottom: 40px;
+            font-size: 2.2rem;
+            color: var(--dark-color);
+        }
+        .how-it-works h2 i {
+            color: var(--primary-color);
+        }
+        .steps {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .step {
+            flex: 1;
+            min-width: 250px;
+            padding: 30px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .step:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .step i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .recent-issues { margin-bottom: 50px; }
+        .recent-issues h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            color: var(--dark-color);
+        }
+        .recent-issues h2 i {
+            color: var(--primary-color);
+        }
+        .issues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .issue-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .issue-card:hover { transform: translateY(-5px); }
+        .issue-image { height: 200px; overflow: hidden; background: #f0f0f0; }
+        .issue-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .issue-content { padding: 20px; }
+        .issue-content h3 { margin-bottom: 10px; color: var(--dark-color); }
+        .issue-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .issue-meta i { margin-right: 5px; }
+        .issue-status {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .status-received { background-color: #f1c40f; color: #000; }
+        .status-in-progress { background-color: #3498db; color: #fff; }
+        .status-resolved { background-color: #2ecc71; color: #fff; }
+        
+        .report-page, .track-page { padding: 50px 0; }
+        .report-page h1, .track-page h1 { text-align: center; margin-bottom: 20px; }
+        .subtitle {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #666;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .issue-form {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .issue-form h2 { margin-bottom: 20px; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        .form-group textarea { min-height: 100px; }
+        .location-controls, .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .map-container {
+            height: 300px;
+            background-color: #f0f0f0;
+            margin-top: 10px;
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        #map { width: 100%; height: 100%; }
+        .photo-preview {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .photo-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 4px;
+            border: 2px solid #ddd;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--secondary-color), #27ae60);
+            color: white;
+            font-size: 1.1rem;
+            border-radius: 30px;
+        }
+        .submission-success {
+            text-align: center;
+            padding: 30px;
+        }
+        .submission-success h3 {
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+        }
+        
+        .status-tracker {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .track-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
+            color: white;
+            font-size: 1.1rem;
+            border-radius: 30px;
+        }
+        .alert {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .loading { text-align: center; padding: 40px; color: #666; }
+        
+        footer {
+            background: linear-gradient(135deg, var(--dark-color), #1a252f);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: auto;
+        }
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .footer-section ul { list-style: none; }
+        .footer-section ul li { margin-bottom: 10px; }
+        .footer-section ul li a {
+            color: var(--light-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .footer-section ul li a:hover { color: var(--primary-color); }
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .department-login-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .header-container { flex-direction: column; gap: 15px; }
+            nav ul { justify-content: center; }
+            nav ul li { margin: 0 10px; }
+            .hero { padding: 80px 0; }
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .hero-buttons .btn { width: 100%; max-width: 250px; }
+            .location-controls, .camera-controls { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-container">
+            <div class="logo"><a href="#" onclick="showPage('home')">Urban<span>Fix</span></a></div>
+            <nav>
+                <ul>
+                    <li><a href="#" onclick="showPage('home')" class="active" id="nav-home">Home</a></li>
+                    <li><a href="#" onclick="showPage('report')" id="nav-report">Report Issue</a></li>
+                    <li><a href="#" onclick="showPage('track')" id="nav-track">Track Complaint</a></li>
+                    <li><a href="#" onclick="showPage('about')" id="nav-about">About</a></li>
+                </ul>
+            </nav>
+            <div class="user-info" id="user-info">
+                <span class="user-name" id="user-name-display"></span>
+                <button onclick="logoutUser()" class="btn danger" id="logoutBtn" style="display: none;">Logout</button>
+                <a href="#" onclick="showPage('login')" class="btn primary" id="loginLink">Login</a>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Content will be dynamically loaded here -->
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>UrbanFix</h3>
+                    <p>Making our cities better, one report at a time.</p>
+                    <div style="margin-top: 15px;">
+                        <a href="#" style="color: white; margin-right: 15px;"><i class="fab fa-facebook"></i></a>
+                        <a href="#" style="color: white; margin-right: 15px;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="color: white; margin-right: 15px;"><i class="fab fa-instagram"></i></a>
+                        <a href="#" style="color: white;"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#" onclick="showPage('home')">Home</a></li>
+                        <li><a href="#" onclick="showPage('report')">Report Issue</a></li>
+                        <li><a href="#" onclick="showPage('track')">Track Complaint</a></li>
+                        <li><a href="#" onclick="showPage('about')">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> support@urbanfix.app</p>
+                    <p><i class="fas fa-phone"></i> 1800 425 00009</p>
+                    <p><i class="fas fa-map-marker-alt"></i> City Municipal Corporation</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="current-year"></span> UrbanFix. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // ===== DATA STORAGE =====
+        function getComplaints() {
+            try {
+                return JSON.parse(localStorage.getItem('urbanfix_complaints') || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        function saveComplaints(complaints) {
+            localStorage.setItem('urbanfix_complaints', JSON.stringify(complaints));
+        }
+
+        function getDepartments() {
+            try {
+                return JSON.parse(localStorage.getItem('urbanfix_departments') || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        function saveDepartments(depts) {
+            localStorage.setItem('urbanfix_departments', JSON.stringify(depts));
+        }
+
+        // Initialize departments if not exists
+        if (getDepartments().length === 0) {
+            saveDepartments([
+                { id: 'dept1', name: 'Streetlight', password: 'streetlight123' },
+                { id: 'dept2', name: 'Sanitation', password: 'sanitation123' },
+                { id: 'dept3', name: 'Transportation', password: 'transportation123' },
+                { id: 'dept4', name: 'Water', password: 'water123' },
+                { id: 'dept5', name: 'Electricity', password: 'electricity123' },
+                { id: 'dept6', name: 'Waste Management', password: 'wastemanagement123' },
+                { id: 'dept7', name: 'Road Maintenance', password: 'roadmaintenance123' }
+            ]);
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function generateId() {
+            return 'URB' + String(Math.floor(Math.random() * 9000) + 1000);
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => { container.innerHTML = ''; }, 5000);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function getCurrentUser() {
+            try {
+                return JSON.parse(localStorage.getItem('urbanfix_currentUser') || 'null');
+            } catch {
+                return null;
+            }
+        }
+
+        function setCurrentUser(user) {
+            localStorage.setItem('urbanfix_currentUser', JSON.stringify(user));
+        }
+
+        // ===== AUTH FUNCTIONS =====
+        function checkLoginStatus() {
+            const user = getCurrentUser();
+            const userNameDisplay = document.getElementById('user-name-display');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const loginLink = document.getElementById('loginLink');
+
+            if (user) {
+                userNameDisplay.textContent = `Welcome, ${user.name.split(' ')[0]}`;
+                logoutBtn.style.display = 'inline-block';
+                
+                if (user.type === 'department') {
+                    loginLink.textContent = '📊 Dashboard';
+                    loginLink.style.display = 'inline-block';
+                    loginLink.onclick = () => {
+                        showPage('department-dashboard');
+                    };
+                } else {
+                    loginLink.textContent = '👤 Citizen';
+                    loginLink.style.display = 'inline-block';
+                    loginLink.onclick = () => {
+                        showPage('home');
+                    };
+                }
+            } else {
+                userNameDisplay.textContent = '';
+                logoutBtn.style.display = 'none';
+                loginLink.textContent = 'Login';
+                loginLink.style.display = 'inline-block';
+                loginLink.onclick = () => showPage('login');
+            }
+        }
+
+        function logoutUser() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('urbanfix_currentUser');
+                localStorage.removeItem('urbanfix_deptToken');
+                checkLoginStatus();
+                showPage('home');
+            }
+        }
+
+        // ===== NAVIGATION =====
+        let currentPage = 'home';
+        let currentMap = null;
+
+        function showPage(page) {
+            // Check if department user is trying to access non-dashboard pages
+            const user = getCurrentUser();
+            if (user && user.type === 'department' && page !== 'department-dashboard' && page !== 'login') {
+                // If department user tries to access other pages, redirect to dashboard
+                page = 'department-dashboard';
+            }
+
+            currentPage = page;
+            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+            const navMap = {
+                'home': 'nav-home',
+                'report': 'nav-report',
+                'track': 'nav-track',
+                'about': 'nav-about'
+            };
+            if (navMap[page]) {
+                document.getElementById(navMap[page]).classList.add('active');
+            }
+
+            checkLoginStatus();
+
+            switch(page) {
+                case 'home': renderHome(); break;
+                case 'report': renderReport(); break;
+                case 'track': renderTrack(); break;
+                case 'about': renderAbout(); break;
+                case 'login': renderLogin(); break;
+                case 'department-dashboard': renderDepartmentDashboard(); break;
+                default: renderHome();
+            }
+
+            // Update URL
+            if (page === 'home') {
+                window.history.pushState({}, '', '/urbanfix/');
+            } else {
+                window.history.pushState({}, '', `/urbanfix/?page=${page}`);
+            }
+        }
+
+        // ===== RENDER FUNCTIONS =====
+        function renderHome() {
+            const main = document.getElementById('main-content');
+            const complaints = getComplaints();
+            const recent = complaints.slice(-6).reverse();
+
+            main.innerHTML = `
+                <section class="hero">
+                    <div class="container">
+                        <h1><i class="fas fa-city"></i> Report Urban Issues,<br>Improve Your City</h1>
+                        <p>Help make your neighborhood cleaner, safer, and better by reporting issues directly to the authorities.</p>
+                        <div class="hero-buttons">
+                            <a href="#" onclick="showPage('report')" class="btn primary"><i class="fas fa-plus-circle"></i> Report an Issue</a>
+                            <a href="#" onclick="showPage('track')" class="btn secondary"><i class="fas fa-search"></i> Track a Complaint</a>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="how-it-works">
+                    <div class="container">
+                        <h2><i class="fas fa-cogs"></i> How It Works</h2>
+                        <div class="steps">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <i class="fas fa-pen"></i>
+                                <h3>Report</h3>
+                                <p>Submit details of the urban issue with photos and location.</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <i class="fas fa-qrcode"></i>
+                                <h3>Track</h3>
+                                <p>Get a tracking ID to monitor your complaint status.</p>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <i class="fas fa-check-circle"></i>
+                                <h3>Resolve</h3>
+                                <p>Authorities address the issue and update the status.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="recent-issues">
+                    <div class="container">
+                        <h2><i class="fas fa-clock"></i> Recently Reported Issues</h2>
+                        <div class="issues-grid">
+                            ${recent.length > 0 ? recent.map(issue => `
+                                <div class="issue-card">
+                                    <div class="issue-image">
+                                        <img src="${issue.photo || 'https://images.unsplash.com/photo-1584824486509-112e4181ff6b?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200&q=80'}" alt="${escapeHtml(issue.title)}">
+                                    </div>
+                                    <div class="issue-content">
+                                        <h3>${escapeHtml(issue.title)}</h3>
+                                        <div class="issue-meta">
+                                            <span><i class="fas fa-tag"></i> ${escapeHtml(issue.category)}</span>
+                                            <span><i class="fas fa-calendar"></i> ${new Date(issue.date_submitted).toLocaleDateString()}</span>
+                                        </div>
+                                        <p>${escapeHtml((issue.description || '').substring(0, 100))}...</p>
+                                        <span class="issue-status status-${(issue.status || 'received').toLowerCase().replace(' ', '-')}">${issue.status || 'Received'}</span>
+                                    </div>
+                                </div>
+                            `).join('') : '<div class="loading"><i class="fas fa-info-circle"></i> No issues reported yet. Be the first!</div>'}
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderLogin() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div style="padding: 50px 0;">
+                    <div class="container">
+                        <h1 style="text-align:center; margin-bottom: 40px;"><i class="fas fa-sign-in-alt"></i> Login to UrbanFix</h1>
+                        <div style="display:flex; justify-content:center; gap:30px; flex-wrap:wrap;">
+                            <!-- Citizen Login -->
+                            <div style="background:white; padding:30px; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); width:350px;">
+                                <h2 style="text-align:center; margin-bottom:20px;"><i class="fas fa-user"></i> Citizen Login</h2>
+                                <div id="citizen-alert"></div>
+                                <form id="citizenLoginForm">
+                                    <div class="form-group">
+                                        <label>Your Name *</label>
+                                        <input type="text" id="citizenName" class="form-control" placeholder="Enter your full name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email (Optional)</label>
+                                        <input type="email" id="citizenEmail" class="form-control" placeholder="Enter your email">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Phone (Optional)</label>
+                                        <input type="tel" id="citizenPhone" class="form-control" placeholder="Enter your phone">
+                                    </div>
+                                    <button type="submit" class="btn primary" style="width:100%;"><i class="fas fa-arrow-right"></i> Continue as Citizen</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Department Login -->
+                            <div style="background:white; padding:30px; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); width:350px;">
+                                <h2 style="text-align:center; margin-bottom:20px;"><i class="fas fa-building"></i> Department Login</h2>
+                                <div id="dept-login-alert"></div>
+                                <form id="deptLoginForm2">
+                                    <div class="form-group">
+                                        <label>Select Department</label>
+                                        <select id="deptSelect2" class="form-control" required>
+                                            <option value="">-- Choose Department --</option>
+                                            <option value="Streetlight">Streetlight Department</option>
+                                            <option value="Sanitation">Sanitation Department</option>
+                                            <option value="Transportation">Transportation Department</option>
+                                            <option value="Water">Water Department</option>
+                                            <option value="Electricity">Electricity Department</option>
+                                            <option value="Waste Management">Waste Management</option>
+                                            <option value="Road Maintenance">Road Maintenance</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Password</label>
+                                        <input type="password" id="deptPassword2" class="form-control" placeholder="Enter password" required>
+                                    </div>
+                                    <button type="submit" class="btn primary" style="width:100%;"><i class="fas fa-arrow-right"></i> Access Department Portal</button>
+                                </form>
+                                <div style="margin-top:15px; padding:10px; background:#f8f9fa; border-radius:4px; font-size:0.9rem;">
+                                    <strong>Demo:</strong> department name + "123" (e.g., streetlight123)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Citizen login - redirects to home page
+            document.getElementById('citizenLoginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('citizenName').value.trim();
+                if (!name) {
+                    showAlert('citizen-alert', 'Please enter your name', 'danger');
+                    return;
+                }
+                const user = {
+                    name: name,
+                    email: document.getElementById('citizenEmail').value.trim() || `${name.toLowerCase().replace(/\s+/g, '')}@urbanfix.app`,
+                    phone: document.getElementById('citizenPhone').value.trim() || '',
+                    type: 'citizen'
+                };
+                setCurrentUser(user);
+                checkLoginStatus();
+                showAlert('citizen-alert', 'Login successful!', 'success');
+                setTimeout(() => {
+                    showPage('home');
+                }, 1000);
+            });
+
+            // Department login - redirects to department dashboard
+            document.getElementById('deptLoginForm2').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const deptName = document.getElementById('deptSelect2').value;
+                const password = document.getElementById('deptPassword2').value;
+                
+                if (!deptName || !password) {
+                    showAlert('dept-login-alert', 'Please select department and enter password', 'danger');
+                    return;
+                }
+
+                const departments = getDepartments();
+                const dept = departments.find(d => d.name === deptName);
+                
+                if (!dept || dept.password !== password) {
+                    showAlert('dept-login-alert', 'Invalid credentials', 'danger');
+                    return;
+                }
+
+                const user = {
+                    name: deptName,
+                    type: 'department',
+                    department: deptName
+                };
+                setCurrentUser(user);
+                localStorage.setItem('urbanfix_deptToken', btoa(deptName + ':' + Date.now()));
+                checkLoginStatus();
+                showAlert('dept-login-alert', 'Login successful!', 'success');
+                setTimeout(() => {
+                    showPage('department-dashboard');
+                }, 1000);
+            });
+        }
+
+        function renderReport() {
+            const user = getCurrentUser();
+            if (!user) {
+                const main = document.getElementById('main-content');
+                main.innerHTML = `
+                    <div class="container" style="text-align:center; padding:50px;">
+                        <h2><i class="fas fa-lock"></i> Please Login to Report an Issue</h2>
+                        <p>You need to be logged in to submit a complaint.</p>
+                        <a href="#" onclick="showPage('login')" class="btn primary" style="margin-top:20px;">Go to Login</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div class="report-page">
+                    <div class="container">
+                        <h1><i class="fas fa-pen-alt"></i> Report an Urban Issue</h1>
+                        <p class="subtitle">Help improve your city by reporting issues like potholes, broken streetlights, garbage problems, and more.</p>
+                        
+                        <div class="issue-form">
+                            <h2><i class="fas fa-file-alt"></i> Issue Details</h2>
+                            <div id="form-alert"></div>
+                            <form id="issue-form">
+                                <div class="form-group">
+                                    <label>Issue Title *</label>
+                                    <input type="text" id="title" name="title" required placeholder="e.g., Pothole on Main Street">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Category *</label>
+                                    <select id="category" name="category" required>
+                                        <option value="">Select a category</option>
+                                        <option value="Roads and Potholes">Roads and Potholes</option>
+                                        <option value="Street Lighting">Street Lighting</option>
+                                        <option value="Garbage and Waste">Garbage and Waste</option>
+                                        <option value="Water Supply">Water Supply</option>
+                                        <option value="Sewage and Drainage">Sewage and Drainage</option>
+                                        <option value="Parks and Public Spaces">Parks and Public Spaces</option>
+                                        <option value="Public Safety">Public Safety</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Description *</label>
+                                    <textarea id="description" name="description" required placeholder="Please provide detailed description of the issue..."></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Location *</label>
+                                    <div class="location-controls">
+                                        <input type="text" id="location" name="location" required placeholder="Enter address or landmark">
+                                        <button type="button" onclick="getCurrentLocation()" class="btn secondary"><i class="fas fa-location-dot"></i> Use Current Location</button>
+                                    </div>
+                                    <input type="hidden" id="latitude" name="latitude">
+                                    <input type="hidden" id="longitude" name="longitude">
+                                    <div class="map-container">
+                                        <div id="map" style="height: 300px;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Photo Evidence</label>
+                                    <div class="camera-controls">
+                                        <input type="file" id="photo" name="photo" accept="image/*" style="display:none;">
+                                        <button type="button" onclick="document.getElementById('photo').click()" class="btn secondary"><i class="fas fa-upload"></i> Upload Photo</button>
+                                        <button type="button" onclick="takePhoto()" class="btn secondary"><i class="fas fa-camera"></i> Take Photo</button>
+                                    </div>
+                                    <div id="photo-preview" class="photo-preview"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Department</label>
+                                    <select id="department" name="department">
+                                        <option value="Road Maintenance">Road Maintenance</option>
+                                        <option value="Streetlight">Streetlight Department</option>
+                                        <option value="Sanitation">Sanitation Department</option>
+                                        <option value="Water">Water Department</option>
+                                        <option value="Electricity">Electricity Department</option>
+                                        <option value="Waste Management">Waste Management</option>
+                                    </select>
+                                </div>
+                                
+                                <button type="submit" class="btn submit-btn" id="submit-btn"><i class="fas fa-paper-plane"></i> Submit Report</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Photo upload handler
+            document.getElementById('photo').addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    displayPhotoPreview(this.files[0]);
+                }
+            });
+
+            // Form submission
+            document.getElementById('issue-form').addEventListener('submit', handleIssueSubmit);
+
+            // Initialize map with default location
+            setTimeout(() => {
+                initMap(28.6139, 77.2090);
+            }, 500);
+        }
+
+        function handleIssueSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-btn');
+            const originalText = submitBtn.innerHTML;
+            const alertDiv = document.getElementById('form-alert');
+            const user = getCurrentUser();
+
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            submitBtn.disabled = true;
+            alertDiv.innerHTML = '';
+
+            const form = document.getElementById('issue-form');
+            const formData = new FormData(form);
+
+            const photoFile = document.getElementById('photo').files[0];
+            
+            const processSubmission = (photoBase64) => {
+                const complaint = {
+                    id: generateId(),
+                    title: formData.get('title'),
+                    category: formData.get('category'),
+                    description: formData.get('description'),
+                    location: formData.get('location'),
+                    latitude: formData.get('latitude') || null,
+                    longitude: formData.get('longitude') || null,
+                    department: formData.get('department') || 'Road Maintenance',
+                    photo: photoBase64 || null,
+                    reporter_name: user.name || 'Anonymous',
+                    reporter_email: user.email || null,
+                    reporter_phone: user.phone || null,
+                    status: 'Received',
+                    date_submitted: new Date().toISOString(),
+                    updates: [{
+                        status: 'Received',
+                        message: 'Complaint received and registered.',
+                        created_at: new Date().toISOString()
+                    }]
+                };
+
+                const complaints = getComplaints();
+                complaints.push(complaint);
+                saveComplaints(complaints);
+
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+
+                // Show success
+                document.querySelector('.issue-form').innerHTML = `
+                    <div class="submission-success">
+                        <i class="fas fa-check-circle" style="font-size:4rem; color:var(--secondary-color); margin-bottom:20px;"></i>
+                        <h3>Report Submitted Successfully!</h3>
+                        <p>Your urban issue has been reported and will be reviewed.</p>
+                        <p><strong>Tracking ID:</strong> <span style="font-family:monospace; background:#f0f0f0; padding:5px 10px; border-radius:4px;">${complaint.id}</span></p>
+                        <div style="display:flex; gap:15px; justify-content:center; margin-top:30px; flex-wrap:wrap;">
+                            <a href="#" onclick="showPage('track')" class="btn primary"><i class="fas fa-search"></i> Track This Complaint</a>
+                            <a href="#" onclick="showPage('report')" class="btn secondary"><i class="fas fa-plus"></i> Report Another</a>
+                        </div>
+                    </div>
+                `;
+            };
+
+            if (photoFile) {
+                fileToBase64(photoFile).then(processSubmission).catch(() => processSubmission(null));
+            } else {
+                processSubmission(null);
+            }
+        }
+
+        function renderTrack() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div class="track-page">
+                    <div class="container">
+                        <h1><i class="fas fa-qrcode"></i> Track Your Complaint</h1>
+                        <p class="subtitle">Enter your complaint tracking ID to check the current status and updates.</p>
+                        
+                        <div class="status-tracker">
+                            <div id="track-alert"></div>
+                            <div class="track-form">
+                                <form id="track-form">
+                                    <div class="form-group">
+                                        <label>Tracking ID *</label>
+                                        <input type="text" id="tracking-id" name="trackingId" required placeholder="Enter your tracking ID (e.g., URB001)">
+                                    </div>
+                                    <button type="submit" class="btn track-btn" id="track-btn"><i class="fas fa-search"></i> Track Complaint</button>
+                                </form>
+                            </div>
+                            
+                            <div id="status-details" class="status-details" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('track-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const trackingId = document.getElementById('tracking-id').value.trim().toUpperCase();
+                const alertDiv = document.getElementById('track-alert');
+                const statusDetails = document.getElementById('status-details');
+                const submitBtn = document.getElementById('track-btn');
+
+                if (!trackingId) {
+                    showAlert('track-alert', 'Please enter a tracking ID', 'danger');
+                    return;
+                }
+
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+                submitBtn.disabled = true;
+
+                const complaints = getComplaints();
+                const complaint = complaints.find(c => c.id === trackingId);
+
+                if (!complaint) {
+                    showAlert('track-alert', 'Complaint not found. Please check the Tracking ID.', 'danger');
+                    statusDetails.style.display = 'none';
+                } else {
+                    alertDiv.innerHTML = '';
+                    displayComplaintStatus(complaint);
+                }
+
+                submitBtn.innerHTML = '<i class="fas fa-search"></i> Track Complaint';
+                submitBtn.disabled = false;
+            });
+        }
+
+        function displayComplaintStatus(complaint) {
+            const statusDetails = document.getElementById('status-details');
+            
+            const statusSteps = [
+                { status: 'Received', icon: 'fa-inbox', color: '#f39c12' },
+                { status: 'In Progress', icon: 'fa-spinner', color: '#3498db' },
+                { status: 'Resolved', icon: 'fa-check-circle', color: '#2ecc71' }
+            ];
+            
+            const currentStatusIndex = statusSteps.findIndex(s => s.status === complaint.status);
+            
+            let updatesHtml = '';
+            if (complaint.updates && complaint.updates.length > 0) {
+                updatesHtml = complaint.updates.map(update => `
+                    <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:10px;">
+                        <strong>${update.status}</strong>
+                        <p style="margin:5px 0;">${escapeHtml(update.message)}</p>
+                        <small>${new Date(update.created_at).toLocaleString()}</small>
+                    </div>
+                `).join('');
+            }
+            
+            statusDetails.innerHTML = `
+                <div class="status-header">
+                    <h3>${escapeHtml(complaint.title)}</h3>
+                    <p><strong>Tracking ID:</strong> ${complaint.id}</p>
+                    <p><strong>Category:</strong> ${escapeHtml(complaint.category)}</p>
+                    <p><strong>Location:</strong> ${escapeHtml(complaint.location)}</p>
+                    <p><strong>Date Submitted:</strong> ${new Date(complaint.date_submitted).toLocaleString()}</p>
+                    <p><strong>Current Status:</strong> <span class="issue-status status-${complaint.status.toLowerCase().replace(' ', '-')}">${complaint.status}</span></p>
+                </div>
+                
+                <div class="status-timeline">
+                    <h4>Status Timeline</h4>
+                    <ul style="list-style:none; padding-left:0;">
+                        ${statusSteps.map((step, index) => `
+                            <li style="position:relative; padding-bottom:30px; padding-left:30px; border-left: ${index < statusSteps.length - 1 ? '2px solid #ddd' : 'none'};">
+                                <div style="position:absolute; left:-10px; top:0; width:20px; height:20px; border-radius:50%; background: ${index <= currentStatusIndex ? step.color : '#ddd'}; border:3px solid ${index <= currentStatusIndex ? step.color : '#ddd'};"></div>
+                                <div>
+                                    <h5 style="color: ${index <= currentStatusIndex ? step.color : '#999'};"><i class="fas ${step.icon}"></i> ${step.status}</h5>
+                                    <div style="color:#666; font-size:0.9rem;">
+                                        ${index === 0 ? new Date(complaint.date_submitted).toLocaleDateString() : 
+                                          index === currentStatusIndex && complaint.status === step.status ? 'Current Status' :
+                                          index < currentStatusIndex ? 'Completed' : 'Pending'}
+                                    </div>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                
+                ${updatesHtml ? `
+                    <div style="margin-top:30px;">
+                        <h4>Status Updates</h4>
+                        ${updatesHtml}
+                    </div>
+                ` : ''}
+                
+                ${complaint.photo ? `
+                    <div style="margin-top:30px;">
+                        <h4>Attached Photo</h4>
+                        <img src="${complaint.photo}" style="max-width:100%; border-radius:8px;">
+                    </div>
+                ` : ''}
+            `;
+            
+            statusDetails.style.display = 'block';
+        }
+
+        function renderAbout() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div style="padding:50px 0;">
+                    <div class="container">
+                        <h1><i class="fas fa-info-circle"></i> About UrbanFix</h1>
+                        <div style="background:white; padding:40px; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                            <div style="margin-bottom:40px;">
+                                <h2><i class="fas fa-bullseye" style="color:var(--primary-color);"></i> Our Mission</h2>
+                                <p>UrbanFix is a citizen-centric platform designed to bridge the gap between residents and municipal authorities. Our mission is to make cities more responsive, transparent, and efficient by enabling citizens to report urban issues directly and track their resolution.</p>
+                            </div>
+                            
+                            <div style="margin-bottom:40px;">
+                                <h2><i class="fas fa-cogs" style="color:var(--primary-color);"></i> How We Work</h2>
+                                <p>UrbanFix provides a simple and intuitive platform for reporting various urban issues such as potholes, broken streetlights, garbage problems, water supply issues, and more. Once a complaint is submitted, it is routed to the appropriate municipal department for resolution.</p>
+                                <p>Citizens can track the status of their complaints in real-time, ensuring transparency and accountability in the resolution process.</p>
+                            </div>
+                            
+                            <div style="margin-bottom:40px;">
+                                <h2><i class="fas fa-envelope" style="color:var(--primary-color);"></i> Contact Us</h2>
+                                <p>If you have any questions, suggestions, or need support, please reach out to us:</p>
+                                <p><strong>Email:</strong> support@urbanfix.app</p>
+                                <p><strong>Phone:</strong> 1800 425 00009</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDepartmentDashboard() {
+            const user = getCurrentUser();
+            if (!user || user.type !== 'department') {
+                showPage('login');
+                return;
+            }
+
+            const department = user.department;
+            const complaints = getComplaints();
+            const deptComplaints = complaints.filter(c => c.department === department);
+            
+            const stats = {
+                total: deptComplaints.length,
+                received: deptComplaints.filter(c => c.status === 'Received').length,
+                inProgress: deptComplaints.filter(c => c.status === 'In Progress').length,
+                resolved: deptComplaints.filter(c => c.status === 'Resolved').length
+            };
+
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+                <div style="padding:30px 0;">
+                    <div class="container">
+                        <h1 style="margin-bottom:10px;"><i class="fas fa-building"></i> ${department} Dashboard</h1>
+                        <p style="color:#666; margin-bottom:30px;">Manage and track complaints assigned to your department.</p>
+                        
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:20px; margin-bottom:30px;">
+                            <div style="background:white; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                                <h3 style="font-size:2rem; color:var(--primary-color);">${stats.total}</h3>
+                                <p>Total Issues</p>
+                            </div>
+                            <div style="background:white; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                                <h3 style="font-size:2rem; color:var(--warning-color);">${stats.received}</h3>
+                                <p>Received</p>
+                            </div>
+                            <div style="background:white; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                                <h3 style="font-size:2rem; color:var(--primary-color);">${stats.inProgress}</h3>
+                                <p>In Progress</p>
+                            </div>
+                            <div style="background:white; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+                                <h3 style="font-size:2rem; color:var(--secondary-color);">${stats.resolved}</h3>
+                                <p>Resolved</p>
+                            </div>
+                        </div>
+                        
+                        <div id="dept-alert-container"></div>
+                        
+                        <div style="background:white; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.05); overflow:hidden;">
+                            <table style="width:100%; border-collapse:collapse;">
+                                <thead>
+                                    <tr style="background:#f8f9fa;">
+                                        <th style="padding:15px; text-align:left;">ID</th>
+                                        <th style="padding:15px; text-align:left;">Title</th>
+                                        <th style="padding:15px; text-align:left;">Reporter</th>
+                                        <th style="padding:15px; text-align:left;">Date</th>
+                                        <th style="padding:15px; text-align:left;">Status</th>
+                                        <th style="padding:15px; text-align:left;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dept-issues-list">
+                                    ${deptComplaints.length > 0 ? deptComplaints.map(issue => `
+                                        <tr>
+                                            <td style="padding:15px; border-bottom:1px solid #eee;">${issue.id}</td>
+                                            <td style="padding:15px; border-bottom:1px solid #eee;">${escapeHtml(issue.title)}</td>
+                                            <td style="padding:15px; border-bottom:1px solid #eee;">${escapeHtml(issue.reporter_name || 'Anonymous')}</td>
+                                            <td style="padding:15px; border-bottom:1px solid #eee;">${new Date(issue.date_submitted).toLocaleDateString()}</td>
+                                            <td style="padding:15px; border-bottom:1px solid #eee;">
+                                                <span class="issue-status status-${issue.status.toLowerCase().replace(' ', '-')}">${issue.status}</span>
+                                            </td>
+                                            <td style="padding:15px; border-bottom:1px solid #eee;">
+                                                <button onclick="viewComplaint('${issue.id}')" class="btn primary" style="padding:5px 10px; font-size:0.8rem;">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button onclick="updateStatus('${issue.id}')" class="btn warning" style="padding:5px 10px; font-size:0.8rem;">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('') : `
+                                        <tr><td colspan="6" style="padding:40px; text-align:center; color:#666;">No complaints assigned to your department.</td></tr>
+                                    `}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== COMPLAINT ACTIONS =====
+        function viewComplaint(id) {
+            const complaints = getComplaints();
+            const complaint = complaints.find(c => c.id === id);
+            if (!complaint) {
+                showAlert('dept-alert-container', 'Complaint not found', 'danger');
+                return;
+            }
+
+            let updatesHtml = '';
+            if (complaint.updates && complaint.updates.length > 0) {
+                updatesHtml = complaint.updates.map(update => `
+                    <div style="background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:10px;">
+                        <strong>${update.status}</strong>
+                        <p style="margin:5px 0;">${escapeHtml(update.message)}</p>
+                        <small>${new Date(update.created_at).toLocaleString()}</small>
+                    </div>
+                `).join('');
+            }
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position:fixed; top:0; left:0; width:100%; height:100%;
+                background:rgba(0,0,0,0.5); display:flex; justify-content:center;
+                align-items:center; z-index:1000;
+            `;
+            modal.innerHTML = `
+                <div style="background:white; border-radius:8px; max-width:600px; width:90%; max-height:90vh; overflow-y:auto; padding:30px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3><i class="fas fa-file-alt"></i> Complaint Details</h3>
+                        <button onclick="this.closest('div[style]').remove()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+                    </div>
+                    
+                    <h4>${escapeHtml(complaint.title)}</h4>
+                    <p><strong>ID:</strong> ${complaint.id}</p>
+                    <p><strong>Category:</strong> ${escapeHtml(complaint.category)}</p>
+                    <p><strong>Description:</strong> ${escapeHtml(complaint.description)}</p>
+                    <p><strong>Location:</strong> ${escapeHtml(complaint.location)}</p>
+                    <p><strong>Reported by:</strong> ${escapeHtml(complaint.reporter_name || 'Anonymous')}</p>
+                    <p><strong>Date:</strong> ${new Date(complaint.date_submitted).toLocaleString()}</p>
+                    <p><strong>Status:</strong> <span class="issue-status status-${complaint.status.toLowerCase().replace(' ', '-')}">${complaint.status}</span></p>
+                    
+                    <div style="margin-top:20px;">
+                        <h4>Status History</h4>
+                        ${updatesHtml || '<p>No updates yet.</p>'}
+                    </div>
+                    
+                    ${complaint.photo ? `
+                        <div style="margin-top:20px;">
+                            <h4>Photo</h4>
+                            <img src="${complaint.photo}" style="max-width:100%; border-radius:4px;">
+                        </div>
+                    ` : ''}
+                    
+                    <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+                        <button onclick="this.closest('div[style]').remove()" class="btn secondary">Close</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function updateStatus(id) {
+            const complaints = getComplaints();
+            const index = complaints.findIndex(c => c.id === id);
+            if (index === -1) {
+                showAlert('dept-alert-container', 'Complaint not found', 'danger');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position:fixed; top:0; left:0; width:100%; height:100%;
+                background:rgba(0,0,0,0.5); display:flex; justify-content:center;
+                align-items:center; z-index:1000;
+            `;
+            modal.innerHTML = `
+                <div style="background:white; border-radius:8px; max-width:500px; width:90%; padding:30px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3><i class="fas fa-edit"></i> Update Status</h3>
+                        <button onclick="this.closest('div[style]').remove()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>New Status</label>
+                        <select id="new-status" class="form-control">
+                            <option value="Received">Received</option>
+                            <option value="In Progress" selected>In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <textarea id="status-notes" class="form-control" placeholder="Add notes about this update"></textarea>
+                    </div>
+                    
+                    <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+                        <button onclick="this.closest('div[style]').remove()" class="btn secondary">Cancel</button>
+                        <button onclick="saveStatusUpdate('${id}', this)" class="btn primary">Save Changes</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function saveStatusUpdate(id, btn) {
+            const modal = btn.closest('div[style]');
+            const newStatus = document.getElementById('new-status').value;
+            const notes = document.getElementById('status-notes').value.trim() || `Status updated to ${newStatus}`;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            const complaints = getComplaints();
+            const index = complaints.findIndex(c => c.id === id);
+            
+            if (index !== -1) {
+                complaints[index].status = newStatus;
+                complaints[index].updates.push({
+                    status: newStatus,
+                    message: notes,
+                    created_at: new Date().toISOString()
+                });
+                saveComplaints(complaints);
+
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                setTimeout(() => {
+                    modal.remove();
+                    renderDepartmentDashboard();
+                    showAlert('dept-alert-container', 'Status updated successfully!', 'success');
+                }, 500);
+            } else {
+                alert('Error: Complaint not found');
+                btn.innerHTML = 'Save Changes';
+                btn.disabled = false;
+            }
+        }
+
+        // ===== MAP FUNCTIONS =====
+        function initMap(lat, lng) {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) return;
+            
+            if (currentMap) {
+                currentMap.remove();
+            }
+            
+            if (typeof L !== 'undefined') {
+                currentMap = L.map('map').setView([lat, lng], 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(currentMap);
+                
+                const marker = L.marker([lat, lng]).addTo(currentMap)
+                    .bindPopup('Report Location')
+                    .openPopup();
+
+                currentMap.on('click', function(e) {
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lng;
+                    marker.setLatLng([lat, lng]);
+                    updateLocationFromCoords(lat, lng);
+                });
+            }
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                const btn = document.querySelector('[onclick="getCurrentLocation()"]');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting...';
+                btn.disabled = true;
+
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        document.getElementById('latitude').value = lat;
+                        document.getElementById('longitude').value = lng;
+                        
+                        updateLocationFromCoords(lat, lng);
+                        initMap(lat, lng);
+                        
+                        btn.innerHTML = '<i class="fas fa-check"></i> Location Found';
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fas fa-location-dot"></i> Use Current Location';
+                            btn.disabled = false;
+                        }, 2000);
+                    },
+                    (error) => {
+                        console.error('Geolocation error:', error);
+                        alert('Could not get your location. Please enter it manually.');
+                        btn.innerHTML = '<i class="fas fa-location-dot"></i> Use Current Location';
+                        btn.disabled = false;
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by your browser.');
+            }
+        }
+
+        function updateLocationFromCoords(lat, lng) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.display_name) {
+                        document.getElementById('location').value = data.display_name;
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('location').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                });
+        }
+
+        // ===== CAMERA FUNCTIONS =====
+        function takePhoto() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position:fixed; top:0; left:0; width:100%; height:100%;
+                    background:rgba(0,0,0,0.9); z-index:1000;
+                    display:flex; flex-direction:column; align-items:center; justify-content:center;
+                `;
+                modal.innerHTML = `
+                    <video id="camera-view" autoplay playsinline style="width:100%; max-width:100%; max-height:70vh; background:#000;"></video>
+                    <div style="margin-top:20px; display:flex; gap:20px;">
+                        <button id="camera-capture" style="width:60px; height:60px; border-radius:50%; background:#fff; border:4px solid #f0f0f0; cursor:pointer;"></button>
+                        <button id="camera-cancel" class="btn danger">Cancel</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                const video = document.getElementById('camera-view');
+                const captureBtn = document.getElementById('camera-capture');
+                const cancelBtn = document.getElementById('camera-cancel');
+
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(stream => {
+                        video.srcObject = stream;
+                        video.play();
+
+                        captureBtn.addEventListener('click', () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                            canvas.toBlob(blob => {
+                                const file = new File([blob], 'captured-photo.jpg', { type: 'image/jpeg' });
+                                const dataTransfer = new DataTransfer();
+                                dataTransfer.items.add(file);
+                                document.getElementById('photo').files = dataTransfer.files;
+                                displayPhotoPreview(file);
+                                stream.getTracks().forEach(track => track.stop());
+                                modal.remove();
+                            }, 'image/jpeg', 0.9);
+                        });
+
+                        cancelBtn.addEventListener('click', () => {
+                            stream.getTracks().forEach(track => track.stop());
+                            modal.remove();
+                        });
+                    })
+                    .catch(err => {
+                        console.error('Camera error:', err);
+                        alert('Could not access camera.');
+                        modal.remove();
+                    });
+            } else {
+                alert('Camera access not supported. Please upload a photo instead.');
+            }
+        }
+
+        function displayPhotoPreview(file) {
+            const preview = document.getElementById('photo-preview');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button onclick="removePhoto()" class="btn danger" style="margin-top:10px;">Remove</button>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePhoto() {
+            document.getElementById('photo-preview').innerHTML = '';
+            document.getElementById('photo').value = '';
+        }
+
+        // ===== INITIALIZE =====
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Handle page load - Check if department user is logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            let page = urlParams.get('page') || 'home';
+            
+            // If department user, always show dashboard
+            const user = getCurrentUser();
+            if (user && user.type === 'department') {
+                page = 'department-dashboard';
+            }
+            
+            showPage(page);
+        });
+
+        // Handle back/forward buttons
+        window.addEventListener('popstate', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            let page = urlParams.get('page') || 'home';
+            
+            const user = getCurrentUser();
+            if (user && user.type === 'department' && page !== 'department-dashboard') {
+                page = 'department-dashboard';
+            }
+            
+            showPage(page);
+        });
+    </script>
+</body>
+</html>
